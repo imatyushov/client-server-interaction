@@ -1,24 +1,26 @@
 const express = require('express');
 const cors = require('cors');
 const events = require('events');
-const PORT = 4000;
+
+
+const PORT = 2000 | process.env.PORT;
 
 const emitter = new events.EventEmitter();
-const app = express();
+const application = express();
 
-app.use(cors())
-app.use(express.json())
+application.use(cors());
+application.use(express.json());
 
-app.get('/get-messages', (req, res) => {
+application.get('/messages',(request, response) => {
     emitter.once('newMessage', (message) => {
-        res.json(message)
+        response.status(200).json(message);
     })
-})
+});
 
-app.post('/new-messages', (req, res) => {
-    const message = req.body;
-    emitter.emit('newMessage', message)
-    res.status(200)
-})
+application.post('/create-message',(request, response) => {
+    const message = request.body;
+    emitter.emit('newMessage', message);
+    response.status(200).json('Successful post query');
+});
 
-app.listen(PORT, () => console.log(`Server has been started on PORT ${PORT}`))
+application.listen(PORT, () => console.log(`Server has been started on Port ${PORT}`))

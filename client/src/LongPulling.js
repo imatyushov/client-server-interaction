@@ -1,51 +1,97 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from "react";
 import axios from "axios";
 
-const LongPulling = () => {
-    const [messages, setMessages] = useState([]);
-    const [value, setValue] = useState('');
+const style = {
+    div1: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    div2: {
+        display: 'flex',
+        gap: 10,
+        marginTop: 20,
+        flexDirection: 'column',
+        width: '600px',
+        height: '100vh',
+        border: '1px solid lightgray',
+        borderRadius: 15
+    },
+    input: {
+        fontSize: '30px',
+        border: '1px solid lightgray',
+        borderRadius: 15
+    },
+    button: {
+        fontSize: '30px',
+        border: '1px solid lightgray',
+        borderRadius: 15
+    },
+    response: {
+        border: '1px solid lightgray',
+        fontSize: '30px',
+        borderRadius: 15
+    }
+}
 
+export function LongPulling() {
+    const [messages, setMessages] = useState([]);
+    const [inputValue, setInputValue] = useState('');
+    console.log(inputValue);
 
     useEffect(() => {
-        subscribe()
+        subscribe();
     }, [])
 
     const subscribe = async () => {
         try {
-            const {data} = await axios.get('http://localhost:4000/get-messages')
-            setMessages(prev => [data, ...prev])
-            await subscribe()
-        } catch (e) {
+            const {
+                data,
+                request,
+                status,
+                headers,
+                config,
+                statusText
+            } = await axios.get('http://localhost:2000/messages');
+
+            setMessages(prevState => [...prevState, data]);
+            await subscribe();
+        } catch (error) {
             setTimeout(() => {
-                subscribe()
-            }, 500)
+                subscribe();
+            }, 300)
         }
     }
 
     const sendMessage = async () => {
-        await axios.post('http://localhost:4000/new-messages', {
-            message: value,
-            id: Date.now()
+        await axios.post('http://localhost:2000/create-message', {
+            id: Date.now(),
+            message: inputValue,
         })
     }
 
     return (
-        <div className="center">
-            <div>
-                <div className="form">
-                    <input value={value} onChange={e => setValue(e.target.value)} type="text"/>
-                    <button onClick={sendMessage}>Отправить</button>
-                </div>
-                <div className="messages">
-                    {messages.map(mess =>
-                        <div className="message" key={mess.id}>
-                            {mess.message}
+        <div style={style.div1}>
+            <div style={style.div2}>
+                <input
+                    value={inputValue}
+                    onChange={(event) => {setInputValue(event.target.value)}}
+                    style={style.input}
+                    type='text'/>
+                <button
+                    onClick={sendMessage}
+                    style={style.button}
+                >
+                    Отправить сообщение
+                </button>
+                {messages.map((message) => {
+                    return (
+                        <div style={style.response} key={message.id}>
+                            {message.id}. {message.message}
                         </div>
-                    )}
-                </div>
+                    )
+                })}
             </div>
         </div>
-    );
-};
-
-export default LongPulling;
+    )
+}
