@@ -1,28 +1,31 @@
 const express = require('express');
 const cors = require('cors');
+const {json} = require('express');
 const events = require('events');
-const PORT = 4000;
+
+const PORT = 1000 | process.env.PORT;
 
 const emitter = new events.EventEmitter();
-const app = express();
 
-app.use(cors())
-app.use(express.json())
+const application = express();
+application.use(cors);
+application.use(json);
 
-app.get('/connect', (req, res) => {
-    res.writeHead(200, {
+application.get('/connect', (request, response) => {
+    response.write(200, {
         'Connection': 'keep-alive',
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
+        'Content-Type': 'text/plain;charset=UTF-8',
+        'Cache-Control': 'no-cache'
     })
     emitter.on('newMessage', (message) => {
-        res.write(`data: ${JSON.stringify(message)} \n\n`);
+        response.write(`data: ${JSON.stringify(message)} \n\n `)
     })
-})
+});
 
-app.post('/new-messages', (req, res) => {
-    const message = req.body;
+application.post('/create-message', (request, response) => {
+    const message = request.body;
     emitter.emit('newMessage', message);
-})
+    response.status(200).json('Пост запрос прошел успешно');
+});
 
-app.listen(PORT, () => console.log(`Server has been started on PORT ${PORT}`))
+application.listen(PORT, () => console.log(`Server has been started on Port ${PORT}`))
