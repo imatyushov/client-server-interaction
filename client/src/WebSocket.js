@@ -1,88 +1,61 @@
-import React, {useEffect, useRef, useState} from 'react';
+import { useState, useEffect } from "react";
+import {io} from "socket.io-client";
 
-const WebSocket = () => {
-    const [messages, setMessages] = useState([]);
-    const [value, setValue] = useState('');
-    const socket = useRef();
-    const [connected, setConnected] = useState(false);
-    const [username, setUsername] = useState('')
+const CHAT_SERVER_URL = 'ws://localhost:1000/';
 
+const message = {
+    id: 1,
+    type: 'chat-message',
+    body: '!unmute',
+    user: {name: 'Ilya', color: 'blue'},
+    colorMode: 'blue'
+}
 
+//Connects to chat server using IO;
+const connectChatServer = () => {
+    const socket = io(CHAT_SERVER_URL, {
+        transports: ['websocket'],
+        path: '/'
+    });
 
-    const connect = () => {
-        socket.current = new WebSocket('ws://localhost:4000');
+    socket.onAny((type, message) => {
+        console.log(type, message);
+    });
 
-        socket.current.onopen = () => {
-            setConnected(true)
-            const message = {
-                event: 'connection',
-                username,
-                id: Date.now()
-            }
-            socket.current.send(JSON.stringify(message))
-        }
-        socket.current.onmessage = (event) => {
-            const message = JSON.parse(event.data)
-            setMessages(prevState => [message, ...prevState])
-        }
-        socket.current.onclose = () => {
-            console.log('Socket закрыт')
-        }
-        socket.current.onerror = () => {
-            console.log('Socket произошла ошибка')
-        }
-    }
-
-    const sendMessage = async () => {
-        const message = {
-            username,
-            message: value,
-            id: Date.now(),
-            event: 'message'
-        }
-        socket.current.send(JSON.stringify(message));
-        setValue('')
-    }
-
-    if (!connected) {
-        return (
-            <div className='center'>
-                <div className='form'>
-                    <input
-                        onChange={event => setUsername(event.target.value)}
-                        value={username} type='text'
-                        placeholder='Введите Ваше имя:'/>
-                    <button onClick={connect}>Войти</button>
-                </div>
-            </div>
-        )
-    }
-    return (
-        <div className="center">
-            <div>
-                <div className="form">
-                    <input value={value} onChange={e => setValue(e.target.value)} type="text"/>
-                    <button onClick={sendMessage}>Отправить</button>
-                </div>
-                <div className="messages">
-                    {messages.map(mess =>
-                        <div key={mess.id}>
-                            {mess.event === 'connection'
-                                ? <div className="connection_message">
-                                    Пользователь {mess.username} подключился
-                                </div>
-                                : <div className="message">
-                                    {mess.username}. {mess.message}
-                                </div>
-                            }
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-
-
+    return socket;
 };
 
-export default WebSocket;
+export function WebSocket() {
+    const [messages, setMessages] = useState([message]);
+    useEffect(() => {
+        let socket = connectChatServer();
+        socket.onAny((type, message) => {
+            if (type === 'chat-message') {
+                setMessages(messages => [...messages, {
+                    body: message.body,
+                    user: message.user,
+                }])
+            }
+        });
+
+        return () => {
+            socket.disconnect();
+        }
+    }, []);
+
+    return (
+        <div>
+            <h1 style={{color: 'red'}}>Magic Chat App</h1>
+            <ul>
+                {messages.map((message, index) => {
+                    return (
+                        <li key={index}>
+                            <span style={{color: message.user.color}}>{message.user.name}</span> {' '}
+                            {message.body}
+                        </li>
+                    )
+                })}
+            </ul>
+        </div>
+    )
+}

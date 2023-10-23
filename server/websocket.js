@@ -1,35 +1,34 @@
-const ws = require('ws');
+const webSocket = require('ws');
 
-const wss = new ws.Server({
-    port: 5000,
-}, () => console.log(`Server started on 5000`))
+const PORT = 1000 | process.env.PORT;
 
+const webSocketServer = new webSocket.WebSocketServer({
+   port: PORT
+}, () => console.log(`Server successful started on ${PORT} port`));
 
-wss.on('connection', function connection(ws) {
-    ws.on('message', function (message) {
-        message = JSON.parse(message)
-        switch (message.event) {
-            case 'message':
-                broadcastMessage(message)
-                break;
-            case 'connection':
-                broadcastMessage(message)
-                break;
-        }
-    })
+webSocketServer.on('connection', function connection(webSocket) {
+   webSocket.on('message', function (message) {
+      message = JSON.parse(message);
+      switch (message.type) {
+         case 'chat-message':
+            broadcastMessage(message);
+            break;
+         case 'connection':
+            broadcastMessage(message);
+            break;
+      }
+   })
 })
 
-function broadcastMessage(message, id) {
-    wss.clients.forEach(client => {
-        client.send(JSON.stringify(message))
-    })
+function broadcastMessage(message) {
+   webSocketServer.clients.forEach((client) => {
+      client.send(JSON.stringify(message));
+   })
 }
-
-// const message = {
-//     event: 'message/connection',
-//     id: 213,
-//     date: '12.02.2012',
-//     username: 'ILYA',
-//     message: 'GET SUBSCRIBE'
-// }
-
+const message = {
+   id: 1,
+   type: 'chat-message',
+   body: '!unmute',
+   user: {},
+   colorMode: 'blue'
+}

@@ -34,6 +34,8 @@ const style = {
     }
 }
 
+//TODO: debounce fn;
+
 export function LongPulling() {
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState('');
@@ -41,7 +43,7 @@ export function LongPulling() {
 
     useEffect(() => {
         subscribe();
-    }, [])
+    }, []);
 
     const subscribe = async () => {
         try {
