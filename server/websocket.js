@@ -25,10 +25,3 @@ function broadcastMessage(message) {
       client.send(JSON.stringify(message));
    })
 }
-const message = {
-   id: 1,
-   type: 'chat-message',
-   body: '!unmute',
-   user: {},
-   colorMode: 'blue'
-}

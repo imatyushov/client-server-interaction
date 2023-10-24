@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import {io} from "socket.io-client";
 
-const CHAT_SERVER_URL = 'ws://localhost:1000/';
+const CHAT_SERVER_URL = '//localhost:6000/';
 
 const message = {
     id: 1,
     type: 'chat-message',
     body: '!unmute',
-    user: {name: 'Ilya', color: 'blue'},
+    user: {name: 'Possibly Ilya:', color: 'lightgreen'},
     colorMode: 'blue'
 }
 
